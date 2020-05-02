@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using MLAgents;
 using MLAgents.Sensors;
 
@@ -10,6 +11,7 @@ public class AI : Agent//MonoBehaviour
 
     private Rigidbody rig;
     public GameObject imageobject;
+    public Text score;
 
     public GameObject rock;
     public GameObject red;
@@ -18,6 +20,8 @@ public class AI : Agent//MonoBehaviour
     private float time_count;
     private Vector2[] safe = new Vector2[3];
     private int mode = 3;
+
+    public bool is_fall = false;
 
     public float speed;
 
@@ -40,6 +44,7 @@ public class AI : Agent//MonoBehaviour
         {
             imageobject.transform.localScale = new Vector3(-1, 1, 1);
         }
+
     }
 
     //ai
@@ -48,6 +53,7 @@ public class AI : Agent//MonoBehaviour
     {
         time_count = 6.5f;
         is_rock = false;
+        is_fall = false;
 
         do
         {
@@ -116,6 +122,8 @@ public class AI : Agent//MonoBehaviour
         sensor.AddObservation(transform.position.x);
         sensor.AddObservation(transform.position.z);
 
+        sensor.AddObservation(rig.velocity);
+
         for (int i = 0; i < safe.Length; i++) 
         {
             sensor.AddObservation(safe[i].x);
@@ -129,7 +137,12 @@ public class AI : Agent//MonoBehaviour
 
     public override void OnActionReceived(float[] vectorAction)
     {
-        rig.velocity = new Vector3(vectorAction[0], rig.velocity.y, vectorAction[1]) * speed;
+        //rig.velocity = new Vector3(vectorAction[0] * speed, rig.velocity.y, vectorAction[1] * speed);
+
+        Vector3 control = Vector3.zero;
+        control.x = vectorAction[0];
+        control.z = vectorAction[1];
+        rig.AddForce(control * speed);
 
         if (time_count <= 0)
         {
@@ -137,18 +150,30 @@ public class AI : Agent//MonoBehaviour
             {
                 SetReward(-1);
                 Debug.Log("-1");
+                score.text = "-1";
                 mode = 3;
             }
             else
             {
                 SetReward(4 - mode);
                 Debug.Log((4 - mode).ToString());
+                score.text = (4 - mode).ToString();
                 if (mode > 1)
                 {
                     mode -= 1;
                 }
             }
 
+            EndEpisode();
+        }
+
+        if (is_fall)
+        {
+            transform.position = new Vector3(0, 2, 0);
+            SetReward(-2);
+            Debug.Log("-2");
+            score.text = "-1";
+            CancelInvoke();
             EndEpisode();
         }
     }

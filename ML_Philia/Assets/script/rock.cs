@@ -8,6 +8,12 @@ public class rock : MonoBehaviour
 
     private void Update()
     {
+
+        if (AI.robot.is_fall)
+        {
+            Destroy(gameObject);
+        }
+
         time_count -= Time.deltaTime;
 
         if (time_count <= 0)

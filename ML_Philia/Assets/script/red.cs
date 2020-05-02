@@ -11,6 +11,11 @@ public class red : MonoBehaviour
     }
     private void Update()
     {
+        if (AI.robot.is_fall)
+        {
+            Destroy(gameObject);
+        }
+
         time -= Time.deltaTime;
         if (time <= 0) Destroy(gameObject);
     }
