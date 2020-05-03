@@ -15,6 +15,7 @@ public class AI : Agent//MonoBehaviour
 
     public GameObject rock;
     public GameObject red;
+    public GameObject scale_;
 
     public bool is_rock = false;
     private float time_count;
@@ -86,7 +87,10 @@ public class AI : Agent//MonoBehaviour
 
                 if (!is_safe)
                 {
-                    Instantiate(red, new Vector3(-6 + (x * 4), 0, -6 + (y * 4)), Quaternion.Euler(90, 0, 0));
+                    //Instantiate(red, new Vector3(-6 + (x * 4), 0, -6 + (y * 4)), Quaternion.Euler(90, 0, 0));
+                    GameObject target = Instantiate(red, scale_.transform);
+                    target.transform.localPosition = new Vector3(-6 + (x * 4), 0, -6 + (y * 4));
+                    target.transform.localRotation = Quaternion.Euler(90, 0, 0);
                 }
             }
         }
@@ -111,7 +115,10 @@ public class AI : Agent//MonoBehaviour
 
                 if (!is_safe)
                 {
-                    Instantiate(rock, new Vector3(-6 + (x * 4), 0, -6 + (y * 4)), new Quaternion());
+                    //Instantiate(rock, new Vector3(-6 + (x * 4), 0, -6 + (y * 4)), new Quaternion());
+                    GameObject target = Instantiate(rock, scale_.transform);
+                    target.transform.localPosition = new Vector3(-6 + (x * 4), 0, -6 + (y * 4));
+                    target.transform.localRotation = new Quaternion();
                 }
             }
         }
@@ -119,15 +126,13 @@ public class AI : Agent//MonoBehaviour
 
     public override void CollectObservations(VectorSensor sensor)
     {
-        sensor.AddObservation(transform.position.x);
-        sensor.AddObservation(transform.position.z);
+        sensor.AddObservation(new Vector2(transform.position.x, transform.position.z));
 
-        sensor.AddObservation(rig.velocity);
+        sensor.AddObservation(new Vector2(rig.velocity.x,rig.velocity.z));
 
         for (int i = 0; i < safe.Length; i++) 
         {
-            sensor.AddObservation(safe[i].x);
-            sensor.AddObservation(safe[i].y);
+            sensor.AddObservation(new Vector2(-6 + (safe[i].x * 4), -6 + (safe[i].y * 4)) * 2);
         }
 
         sensor.AddObservation(mode);
@@ -137,12 +142,7 @@ public class AI : Agent//MonoBehaviour
 
     public override void OnActionReceived(float[] vectorAction)
     {
-        //rig.velocity = new Vector3(vectorAction[0] * speed, rig.velocity.y, vectorAction[1] * speed);
-
-        Vector3 control = Vector3.zero;
-        control.x = vectorAction[0];
-        control.z = vectorAction[1];
-        rig.AddForce(control * speed);
+        rig.velocity = new Vector3(vectorAction[0] * speed, 0, vectorAction[1] * speed);
 
         if (time_count <= 0)
         {
@@ -173,7 +173,9 @@ public class AI : Agent//MonoBehaviour
             SetReward(-2);
             Debug.Log("-2");
             score.text = "-1";
+            mode = 3;
             CancelInvoke();
+            rig.velocity = Vector3.zero;
             EndEpisode();
         }
     }
